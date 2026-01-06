@@ -188,8 +188,8 @@ const char FLOOR(' ');
 const char ESC(27);
 const char UP('W'), UP_ARROW(72), DOWN('S'), DOWN_ARROW(80), LEFT('A'), LEFT_ARROW(75), RIGHT('D'), RIGHT_ARROW(77);
 const unsigned char CTRL_CODE(224); //ignore control codes
-const int SIZEY(10);		//vertical dimension
-const int SIZEX(10);		//horizontal dimension
+const int SIZEY(12);		//vertical dimension
+const int SIZEX(12);		//horizontal dimension
 const int MSSG_WIDTH(40);	//for displaying messages
 
 
@@ -296,16 +296,16 @@ void InitialiseGrid(char g[][SIZEX])
 {
 	char grid[SIZEY][SIZEX]
 		= {
-		{ WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL },
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', WALL},
-		{ WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL }
+		{ WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL}
 	};
 	CopyGrid(g, grid);
 }
@@ -326,13 +326,13 @@ void UpdateBlob(int& x, int& y, char grid[][SIZEX], char key)
 		nY -= 1;
 		if (nY == 0)
 		{
-			nY = 8;
+			nY = 11;
 		}
 		break;
-	case DOWN:
+	case DOWN:	
 	case DOWN_ARROW:
 		nY += 1;
-		if (nY == 9)
+		if (nY == 11)
 		{
 			nY = 1;
 		}
@@ -342,13 +342,13 @@ void UpdateBlob(int& x, int& y, char grid[][SIZEX], char key)
 		nX -= 1;
 		if (nX == 0)
 		{
-			nX = 8;
+			nX = 11;
 		}
 		break;
 	case RIGHT:
 	case RIGHT_ARROW:
 		nX += 1;
-		if (nX == 9)
+		if (nX == 11)
 		{
 			nX = 1;
 		}
@@ -386,37 +386,39 @@ void ReadyToQuit()
 	_getch();
 }
 
-void zombieUpdate(int playerX, int playerY, char grid[SIZEY][SIZEX], int zombieX, int zombieY)
+void zombieUpdate(int playerX, int playerY, char grid[SIZEY][SIZEX], int& zombieX, int& zombieY)
 {
+	PlaceItem(zombieX, zombieY, FLOOR, grid);
 	int tempZx = zombieX;
 	int tempZy = zombieY;
-	if (tempZx > playerX)
+	if (playerX > tempZx)
 	{
-		tempZx = tempZx - 1;
+		tempZx += 1;
 	}
-	else if (tempZx < playerX)
+	else if (playerX < tempZx)
 	{
-		tempZx = tempZx + 1;
+		tempZx -= 1;
 	}
-	else
+	else if (playerX == tempZx)
 	{
-		tempZx = tempZx + 0;
-	}
-	
-	if (tempZy > playerY)
-	{
-		tempZy = tempZy - 1;
-	}
-	else if (tempZy < playerY)
-	{
-		tempZy = tempZy + 1;
-	}
-	else
-	{
-		tempZy = tempZy + 0;
+		tempZx += 0;
 	}
 
+	if (playerY > tempZy)
+	{
+		tempZy += 1;
+	}
+	else if (playerY < tempZy)
+	{
+		tempZy -= 1;
+	}
+	else if (playerY == tempZy)
+	{
+		tempZy += 0;
+	}
 	PlaceItem(zombieX, zombieY, FLOOR, grid);
+	zombieX = tempZx;
+	zombieY = tempZy;
 	PlaceItem(zombieX, zombieY, ZOMBIE, grid);
 	
 }
@@ -434,6 +436,7 @@ int main()
 	srand(time(0));
 	char grid[SIZEY][SIZEX];
 	InitialiseGrid(grid);
+	//pick random spot for player and zombie
 	int bY = rand() % 8 + 1;
 	int bX = rand() % 8 + 1;
 	int zX = rand() % 8 + 1;
@@ -451,6 +454,7 @@ int main()
 		//update
 		key = GetKeyPress();
 		UpdateBlob(bX,bY, grid, key);
+		PlaceItem(zX, zY, FLOOR, grid);
 		zombieUpdate(bX, bY, grid, zX, zY);
 	} while (key != ESC);
 

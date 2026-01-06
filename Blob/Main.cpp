@@ -261,8 +261,8 @@ g - the map grid
 */
 bool IsLegalPosition(int x, int y, const char g[][SIZEX])
 {
-	assert(x >= 0 && x < SIZEX);
-	assert(y >= 0 && y < SIZEY);
+	assert(x >= -1 && x < SIZEX);
+	assert(y >= -1 && y < SIZEY);
 	if (g[y][x] != WALL)
 		return true;
 	return false;
@@ -305,6 +305,8 @@ void InitialiseGrid(char g[][SIZEX])
 		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
 		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
 		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
+		{ WALL, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',' ',' ', WALL},
 		{ WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL, WALL}
 	};
 	CopyGrid(g, grid);
@@ -326,7 +328,7 @@ void UpdateBlob(int& x, int& y, char grid[][SIZEX], char key)
 		nY -= 1;
 		if (nY == 0)
 		{
-			nY = 11;
+			nY = 10;
 		}
 		break;
 	case DOWN:	
@@ -342,7 +344,7 @@ void UpdateBlob(int& x, int& y, char grid[][SIZEX], char key)
 		nX -= 1;
 		if (nX == 0)
 		{
-			nX = 11;
+			nX = 10;
 		}
 		break;
 	case RIGHT:
@@ -379,10 +381,12 @@ void ShowMessages()
 }
 
 //this is the end
-void ReadyToQuit()
+void ReadyToQuit(int score)
 {
 	Clrscr();
 	ShowMessage(clBlack, clYellow, 40, 10, "Any key to exit");
+	ShowMessage(clBlack, clRed, 40, 11, "Score");
+	cout << score;
 	_getch();
 }
 
@@ -391,6 +395,7 @@ void zombieUpdate(int playerX, int playerY, char grid[SIZEY][SIZEX], int& zombie
 	PlaceItem(zombieX, zombieY, FLOOR, grid);
 	int tempZx = zombieX;
 	int tempZy = zombieY;
+	// goes towards the player depending on if its further away on the the x or y
 	if (playerX > tempZx)
 	{
 		tempZx += 1;
@@ -403,7 +408,7 @@ void zombieUpdate(int playerX, int playerY, char grid[SIZEY][SIZEX], int& zombie
 	{
 		tempZx += 0;
 	}
-
+	
 	if (playerY > tempZy)
 	{
 		tempZy += 1;
@@ -437,10 +442,19 @@ int main()
 	char grid[SIZEY][SIZEX];
 	InitialiseGrid(grid);
 	//pick random spot for player and zombie
-	int bY = rand() % 8 + 1;
-	int bX = rand() % 8 + 1;
-	int zX = rand() % 8 + 1;
-	int zY = rand() % 8 + 1;
+	int bY = rand() % 10 + 1;
+	int bX = rand() % 10 + 1;
+	int zX = rand() % 10 + 1;
+	int zY = rand() % 10 + 1;
+	while (bY == zX && bY == zY)
+	{
+		//if they overlap redo
+		int bY = rand() % 10 + 1;
+		int bX = rand() % 10 + 1;
+		int zX = rand() % 10 + 1;
+		int zY = rand() % 10 + 1;
+	}
+	int score = -1;
 	PlaceItem(bX,bY,BLOBBY,grid);
 	PlaceItem( zX, zY, ZOMBIE, grid);
 	SetConsoleTitle("Blob!!");
@@ -454,12 +468,20 @@ int main()
 		//update
 		key = GetKeyPress();
 		UpdateBlob(bX,bY, grid, key);
+		score ++ ;
 		PlaceItem(zX, zY, FLOOR, grid);
 		zombieUpdate(bX, bY, grid, zX, zY);
-	} while (key != ESC);
+		if (bX == zX && bY == zY)
+		{
+			break;
+			//end game if hit zombie
+		}
+	} while (key != ESC); {
 
-	ReadyToQuit();
-	return 0;
+		ReadyToQuit(score);
+		return 0;
+	}
+
 }
 
 
